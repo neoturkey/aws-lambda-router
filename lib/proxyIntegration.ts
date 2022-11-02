@@ -138,15 +138,28 @@ export const process: ProcessMethod<ProxyIntegrationConfig, APIGatewayProxyEvent
       proxyEvent.routePath = actionConfig.routePath
       if (event.body) {
         try {
-          proxyEvent.rawBody = event.body
-          proxyEvent.body = JSON.parse(event.body)
-        } catch (parseError) {
-          console.log(`Could not parse body as json: ${event.body}`, parseError)
+          proxyEvent.rawBody = event.isBase64Encoded ? Buffer.from(event.body, 'base64').toString()  : event.body;
+        }
+        catch (decodeError) {
+          console.log(`Could not base64 decode body: ${event.body}`, decodeError);
+          return {
+            statusCode: 400,
+            headers,
+            body: JSON.stringify({ message: 'body is not a valid base64', error: 'ParseError' })
+          };
+        }
+
+        // TODO - only do if content-type is set to 'application/json'
+        try {
+          proxyEvent.body = JSON.parse(proxyEvent.rawBody);
+        }
+        catch (parseError) {
+          console.log(`Could not parse body as json: ${event.body}`, parseError);
           return {
             statusCode: 400,
             headers,
             body: JSON.stringify({ message: 'body is not a valid JSON', error: 'ParseError' })
-          }
+          };
         }
       }
       return processActionAndReturn(actionConfig, proxyEvent, context, headers).catch(async (error) => {
