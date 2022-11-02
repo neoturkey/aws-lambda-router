@@ -150,16 +150,18 @@ export const process: ProcessMethod<ProxyIntegrationConfig, APIGatewayProxyEvent
         }
 
         // TODO - only do if content-type is set to 'application/json'
-        try {
-          proxyEvent.body = JSON.parse(proxyEvent.rawBody);
-        }
-        catch (parseError) {
-          console.log(`Could not parse body as json: ${event.body}`, parseError);
-          return {
-            statusCode: 400,
-            headers,
-            body: JSON.stringify({ message: 'body is not a valid JSON', error: 'ParseError' })
-          };
+        if (proxyEvent.rawBody) {
+          try {
+            proxyEvent.body = JSON.parse(proxyEvent.rawBody as string);
+          }
+          catch (parseError) {
+            console.log(`Could not parse body as json: ${event.body}`, parseError);
+            return {
+              statusCode: 400,
+              headers,
+              body: JSON.stringify({ message: 'body is not a valid JSON', error: 'ParseError' })
+            };
+          }
         }
       }
       return processActionAndReturn(actionConfig, proxyEvent, context, headers).catch(async (error) => {
