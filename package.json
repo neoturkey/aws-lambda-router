@@ -1,5 +1,5 @@
 {
-  "name": "@salu/aws-lambda-router",
+  "name": "@saluconnect/aws-lambda-router",
   "version": "0.11.1-salu.2",
   "description": "AWS lambda router",
   "main": "index.js",
